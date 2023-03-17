@@ -1,0 +1,214 @@
+---
+title: "DATA 607 Project 3"
+author: "Gregg Maloy"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r load packages, include=FALSE}
+library(dplyr)
+library(tidyverse)
+library(data.table)
+#library(tidyr)
+library(readr)
+#library("ggplot2")
+
+```
+### Introduction
+
+
+### Part 1: Load File and Inspection
+
+```{r load data}
+k<- read.csv("https://raw.githubusercontent.com/goygoyummm/Data607_R/main/20230307_Kaggel_DS_Skill_Survey1.csv", na.strings=c("","NA"))
+
+df<- k %>% 
+  filter(!row_number() %in% c(1))
+
+```
+1. Make dataframes for each question
+```{r load data}
+df11_15<- df  %>% select(
+  "Q11", 76:90)
+
+df11_28<- df  %>% select(
+  "Q11", 151:158)
+
+df11_36<- df  %>% select(
+  "Q11", 203:217)
+
+df12 <- df[,31:45]
+
+df15<- df  %>% select(
+  "Q15_1",	"Q15_2",	"Q15_3",	"Q15_4",	"Q15_5",	"Q15_6",	"Q15_7",	"Q15_8"
+  ,"Q15_9",	"Q15_10",	"Q15_11",	"Q15_12",	"Q15_13",	"Q15_14",	"Q15_15")
+
+
+df28<- df  %>% select(
+  "Q28_1",	"Q28_2",	"Q28_3",	"Q28_4",	"Q28_5",	"Q28_6",	"Q28_7"	   
+  ,"Q28_8")  
+
+df36<- df  %>% select(  
+   "Q36_1",	"Q36_2",	"Q36_3",	"Q36_4",	"Q36_5",	"Q36_6",	"Q36_7"
+  ,"Q36_8",	"Q36_9",	"Q36_10",	"Q36_11",	"Q36_12",	"Q36_13",	"Q36_14",	"Q36_15")
+
+
+
+```
+2. Pivot_longer
+
+```{r}
+dfq11_15 <- df11_15 %>%
+  pivot_longer(
+    cols= -1,
+    names_to="Question_15",
+    values_to="Visualization",
+    values_drop_na=TRUE
+  )
+
+dfq11_28 <- df11_28 %>%
+  pivot_longer(
+    cols= -1,
+    names_to="Question_28",
+    values_to="Daily_Work_Activities",
+    values_drop_na=TRUE
+  )
+
+dfq11_36 <- df11_36 %>%
+  pivot_longer(
+    cols= -1,
+    names_to="Question_36",
+    values_to="BI_Tools",
+    values_drop_na=TRUE
+  )
+
+dfq12 <- df12 %>%
+pivot_longer(
+cols = everything(),
+names_to = "Question 12",
+values_to = "Language",
+values_drop_na = TRUE
+)
+
+
+
+
+dfq15 <- df15 %>%
+  pivot_longer(
+    cols=everything(),
+    names_to="Question_15",
+    values_to="Visualizations",
+    values_drop_na=TRUE
+  )
+
+
+dfq28 <- df28 %>%
+  pivot_longer(
+    cols=everything(),
+    names_to="Question_28",
+    values_to="Daily_Work_Activities",
+    values_drop_na=TRUE
+  )
+
+dfq36 <- df36 %>%
+  pivot_longer(
+    cols=everything(),
+    names_to="Question_36",
+    values_to="BI_Tools",
+    values_drop_na=TRUE
+  )
+```
+3. Eliminate na
+```{r}
+dfq11_15<-dfq11_15[16:nrow(dfq11_15),]
+dfq11_28<-dfq11_28[16:nrow(dfq11_28),]
+dfq11_36<-dfq11_36[16:nrow(dfq11_36),]
+dfq12<-dfq12[16:nrow(dfq12),]
+dfq15<-dfq15[16:nrow(dfq15),]
+dfq28<-dfq28[16:nrow(dfq28),]
+dfq36<-dfq36[16:nrow(dfq36),]
+
+
+```
+4. Individual Plots
+```{r}
+#dfq11 %>%
+#  ggplot(aes(x=Experience))+
+#  geom_bar()+
+#  coord_flip()+
+#  theme_minimal()
+
+dfq12 %>%
+  ggplot(aes(x=Language))+
+  geom_bar()+
+  coord_flip()+
+  theme_minimal()
+
+
+dfq15 %>%
+  ggplot(aes(x=Visualizations))+
+  geom_bar()+
+  coord_flip()+
+  theme_minimal()
+
+dfq28 %>%
+  ggplot(aes(x=Daily_Work_Activities))+
+  geom_bar()+
+  coord_flip()+
+  theme_minimal()
+
+dfq36 %>%
+  ggplot(aes(x=BI_Tools))+
+  geom_bar()+
+  coord_flip()+
+  theme_minimal()
+```
+5. Cross Plots 
+```{r}
+
+
+
+dfq11_15 %>%
+ggplot(aes(x= factor(Q11, levels = c("< 1 years","1-3 years","3-5 years","5-10 years","10-20 years","20+ years")),fill=Visualization))+
+geom_bar()+
+theme_bw()+
+labs(title = "Years of Experience vs Visualization", x= "Years of Experience")
+
+
+dfq11_28 %>%
+ggplot(aes(x= factor(Q11, levels = c("< 1 years","1-3 years","3-5 years","5-10 years","10-20 years","20+ years")),fill=Daily_Work_Activities))+
+geom_bar()+
+theme_bw()+
+labs(title = "Years of Experience vs Daily_Work_Activities", x= "Years of Experience")
+
+dfq11_36 %>%
+ggplot(aes(x= factor(Q11, levels = c("< 1 years","1-3 years","3-5 years","5-10 years","10-20 years","20+ years")),fill=BI_Tools))+
+geom_bar()+
+theme_bw()+
+labs(title = "Years of Experience vs BI_Tools", x= "Years of Experience")
+```
+
+```{r}
+dfq11_15 %>%
+ggplot(aes(x=Visualization))+
+facet_wrap(~Q11)+
+coord_flip()+
+geom_bar()+
+theme_bw()
+
+dfq11_28 %>%
+ggplot(aes(x=Daily_Work_Activities))+
+facet_wrap(~Q11)+
+coord_flip()+
+geom_bar()+
+theme_bw()
+
+dfq11_36 %>%
+ggplot(aes(x=BI_Tools))+
+facet_wrap(~Q11)+
+coord_flip()+
+geom_bar()+
+theme_bw()
+```
