@@ -119,4 +119,45 @@ graph_multicolumn_q(df,
                     'Additional Data Product Usage')
 ```
 
+TESTING FACTORED GRAPH
+
+```{r}
+
+graph_cross_analysis <- function(og_df, q_demo, q_list, q_name, val_label, q_text) {
+  q_df <- og_df %>%
+    select(all_of(c(q_demo, q_list)))
+  
+  q_df1 <- q_df %>%
+    pivot_longer(
+      cols= -1,
+      names_to=q_name,
+      values_to=val_label,
+      values_drop_na=TRUE
+  )
+  
+  q_df1 %>%
+    ggplot(aes(x=fct_rev(fct_infreq(!!sym(val_label))), fill = as.factor(!!sym(q_demo))))+
+    facet_wrap(q_demo)+
+    coord_flip()+
+    geom_bar()+
+    theme(axis.text.x = element_text(size = 7))+
+    theme(axis.text.y = element_text(size = 7))+
+    theme(legend.position = "none")+
+    labs(y= "Count", x = val_label)+
+    ggtitle(q_text)
+    
+    
+}
+
+```
+
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q11', 
+                     q_list = q31_cols, 
+                     q_name = 'Question 31', 
+                     val_label = 'Platform',
+                     q_text = 'Cloud Computing Platform Usage')
+```
 
