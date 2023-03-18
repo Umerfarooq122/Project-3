@@ -189,26 +189,92 @@ geom_bar()+
 theme_bw()+
 labs(title = "Years of Experience vs BI_Tools", x= "Years of Experience")
 ```
-
+6. Colored Faucet Barcharts
 ```{r}
+#dfq11_15 %>%
+#ggplot(aes(x=Visualization))+
+#facet_wrap(~Q11)+
+#coord_flip()+
+#geom_bar()+
+#theme_bw()
+
 dfq11_15 %>%
-ggplot(aes(x=Visualization))+
+ggplot(aes(x=Visualization, fill = as.factor(Visualization)))+#as.factor(Q11)))
 facet_wrap(~Q11)+
 coord_flip()+
 geom_bar()+
-theme_bw()
-
-dfq11_28 %>%
-ggplot(aes(x=Daily_Work_Activities))+
-facet_wrap(~Q11)+
-coord_flip()+
-geom_bar()+
-theme_bw()
-
+theme(axis.text.x = element_text(size = 7))+
+theme(axis.text.y = element_text(size = 7))
+  
 dfq11_36 %>%
-ggplot(aes(x=BI_Tools))+
+ggplot(aes(x=BI_Tools, fill = as.factor(BI_Tools)))+#as.factor(Q11)))
 facet_wrap(~Q11)+
 coord_flip()+
 geom_bar()+
-theme_bw()
+theme(axis.text.x = element_text(size = 7))+
+theme(axis.text.y = element_text(size = 7))
+#####################stopped with 28 because not really visual
+#dfq11_28 %>%
+#ggplot(aes(x=Daily_Work_Activities))+
+#facet_wrap(~Q11)+
+#coord_flip()+
+#geom_bar()+
+#theme_bw()
+```
+7. Percent calculation
+```{r}
+
+
+library(dplyr)
+library(tidyr)
+dfq11_36_percent<-dfq11_36%>%
+    count(Q11, BI_Tools) %>% 
+    mutate(percent = (n/sum(n))*100) %>% 
+    select(-n) %>% 
+    spread(-BI_Tools, percent)
+
+dfq11_15_percent<-dfq11_15%>%
+    count(Q11, Visualization) %>% 
+    mutate(percent = (n/sum(n))*100) %>% 
+    select(-n) %>% 
+    spread(-Visualization, percent)
+
+```
+7. Pivoting long percentage df
+```{r}
+
+dfq11_36_percent_plot <-dfq11_36_percent %>%
+  pivot_longer(
+    cols=-1,
+    names_to="Question_36_BI_Tool",
+    values_to="Question_36_BI_Tool_Percent",
+    values_drop_na=TRUE
+  )
+
+
+dfq11_15_percent_plot <-dfq11_15_percent %>%
+  pivot_longer(
+    cols=-1,
+    names_to="Question_15_Visualization",
+    values_to="Question_15_Visualization_Percent",
+    values_drop_na=TRUE
+  )
+
+
+```
+7. Plotting percentage 
+```{r}
+
+
+ggplot(data=dfq11_36_percent_plot, aes(x=Question_36_BI_Tool_Percent, y=Question_36_BI_Tool, fill=Question_36_BI_Tool)) +
+  facet_wrap(~Q11)+
+  geom_bar(stat="identity", width=0.5)+
+  theme(axis.text.x = element_text(size = 7))+
+  theme(axis.text.y = element_text(size = 7))
+  
+ggplot(data=dfq11_15_percent_plot, aes(x=Question_15_Visualization_Percent, y=Question_15_Visualization,fill = Question_15_Visualization)) +
+  facet_wrap(~Q11)+
+  geom_bar(stat="identity", width=0.5)+
+  theme(axis.text.x = element_text(size = 7))+
+  theme(axis.text.y = element_text(size = 7))
 ```
