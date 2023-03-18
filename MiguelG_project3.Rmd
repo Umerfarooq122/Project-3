@@ -1,0 +1,137 @@
+---
+title: "Data 607 Project 3"
+author: "Miguel Gomez"
+date: "2023-03-15"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+
+```
+
+
+```{r}
+df <- read.csv("https://raw.githubusercontent.com/LeJQC/MSDS/main/DATA%20607/Project%203/kaggle_survey_2022_responses.csv")
+```
+
+
+```{r}
+df44 <- df[,285:296]
+df44
+```
+<font size="5">
+Added NA to blank rows
+
+```{r}
+dfq44 <- df44 %>%
+pivot_longer(
+cols = everything(),
+names_to = "Question 44",
+values_to = "Platforms",
+values_drop_na = TRUE
+)
+dfq44 <- dfq44[16:nrow(dfq44),]
+
+dfq44 <- dfq44 %>% mutate_all(na_if,"")
+
+dfq44
+```
+
+```{r}
+drop_na(dfq44) %>%
+ggplot(aes(x=Platforms ))+
+geom_bar()+
+coord_flip()+
+theme_minimal()
+```
+
+```{r}
+df36 <- df[,203:217]
+df36
+```
+
+```{r}
+dfq36 <- df36 %>%
+pivot_longer(
+cols = everything(),
+names_to = "Question 36",
+values_to = "Platforms",
+values_drop_na = TRUE
+)
+dfq36 <- dfq36[16:nrow(dfq36),]
+
+dfq36 <- dfq36 %>% mutate_all(na_if,"")
+```
+
+```{r}
+drop_na(dfq36) %>%
+ggplot(aes(x=Platforms ))+
+geom_bar()+
+coord_flip()+
+theme_minimal()
+```
+
+
+```{r}
+df20 <- df[,129:134]
+df20
+```
+
+```{r}
+dfq20 <- df20 %>%
+pivot_longer(
+cols = everything(),
+names_to = "Question 20",
+values_to = "NLP_Methods",
+values_drop_na = TRUE
+)
+dfq20 <- dfq20[16:nrow(dfq20),]
+
+dfq20 <- dfq20 %>% mutate_all(na_if,"")
+
+dfq20 <- dfq20 %>% mutate_all(na_if,"nan")
+```
+
+```{r}
+drop_na(dfq20) %>%
+ggplot(aes(x=NLP_Methods ))+
+geom_bar()+
+coord_flip()+
+theme_minimal()
+```
+
+
+```{r}
+df13 <- df[,46:59]
+df13
+```
+
+```{r}
+dfq13 <- df13 %>%
+pivot_longer(
+cols = everything(),
+names_to = "Question 13",
+values_to = "IDES",
+values_drop_na = TRUE
+)
+dfq13 <- dfq13[16:nrow(dfq13),]
+
+dfq13 <- dfq13 %>% mutate_all(na_if,"")
+
+dfq13 <- dfq13 %>% mutate_all(na_if,"nan")
+
+```
+
+```{r}
+drop_na(dfq13) %>%
+ggplot(aes(x=IDES ))+
+geom_bar()+
+coord_flip()+
+theme_minimal()
+```
