@@ -1,0 +1,122 @@
+---
+title: "project3_cleaning"
+output: html_document
+date: "2023-03-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Libraries
+
+```{r}
+library(tidyverse)
+library(forcats)
+```
+
+Data import
+
+```{r}
+df <- read.csv('./data/kaggle_survey_2022_responses.csv',
+               na.strings = c("", "NA"))
+```
+
+```{r}
+#clear question text from first row
+df <- df[-1,]
+```
+
+```{r}
+graph_multicolumn_q <- function(og_df, q_list, 
+                                q_name, val_label,
+                                q_text) {
+  #Create limited df with only that question's columns
+  q_df <- df %>%
+     select(all_of(q_list))
+  
+  #Create long-pivoted df for graphing
+  q_df1 <- q_df %>%
+    pivot_longer(
+    cols = everything(),
+    names_to = q_name,
+    values_to = val_label,
+    values_drop_na = TRUE)
+  
+  #Produce df of value counts
+  q_df1_count <- q_df1 %>%
+    count(!!sym(val_label))
+  
+  #Graph result
+  
+  q_df1 %>%
+    ggplot(aes(x=fct_rev(fct_infreq(!!sym(val_label)))))+
+    geom_bar()+
+    coord_flip()+
+    theme_minimal()+
+    ggtitle(q_text)+
+    xlab(val_label)
+  
+}
+```
+
+```{r}
+#define column lists for each question
+
+q31_cols <-  c('Q31_1','Q31_2','Q31_3','Q31_4',
+               'Q31_5','Q31_6','Q31_7','Q31_8')
+
+q32_cols <-  c('Q32')
+
+q33_cols <-  c('Q33_1','Q33_2','Q33_3','Q33_4','Q33_5')
+
+q34_cols <-  c('Q34_1','Q34_2','Q34_3','Q34_4','Q34_5',
+               'Q34_6','Q34_7','Q34_8')
+
+q35_cols <-  c('Q35_1','Q35_2','Q35_3','Q35_4','Q35_5','Q35_6',
+               'Q35_7','Q35_8','Q35_9','Q35_10','Q35_11','Q35_12',
+               'Q35_13','Q35_14','Q35_15','Q35_16')
+
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q31_cols,
+                    'Question 31',
+                    'Platform',
+                    'Cloud Computing Platform Usage')
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q32_cols,
+                    'Question 32',
+                    'Platform',
+                    'Cloud Platform: Best Dev. Experience')
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q33_cols,
+                    'Question 33',
+                    'Product',
+                    'Cloud Computing Product Usage')
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q34_cols,
+                    'Question 34',
+                    'Product',
+                    'Data Storage Product Usage')
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q35_cols,
+                    'Question 35',
+                    'Product',
+                    'Additional Data Product Usage')
+```
+
+
