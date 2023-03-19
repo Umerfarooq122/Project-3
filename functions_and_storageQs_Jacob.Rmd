@@ -195,7 +195,7 @@ graph_cross_analysis2 <- function(og_df, q_demo, q_list, q_name, val_label, q_te
 
 ```
 
-##QUESTION 31
+##QUESTION 31: Cloud Computing Platform Usage
 
 ```{r}
 graph_multicolumn_q(df,
@@ -239,7 +239,7 @@ graph_cross_analysis(og_df = df,
 ```
 
 
-##QUESTION 32
+##QUESTION 32: Best Developer Experience
 
 ```{r}
 graph_multicolumn_q(df,
@@ -279,12 +279,12 @@ graph_cross_analysis(og_df = df,
                      q_list = q32_cols, 
                      q_name = 'Question 32', 
                      val_label = 'Platform',
-                     q_text = 'Cloud Computing Product Usage',
+                     q_text = 'Cloud Platform: Best Dev. Experience',
                      level_order = Q29_order)
 ```
 
 
-##QUESTION 33
+##QUESTION 33: Cloud Computing Product Usage
 
 ```{r}
 graph_multicolumn_q(df,
@@ -328,7 +328,7 @@ graph_cross_analysis(og_df = df,
                      level_order = Q29_order)
 ```
 
-##QUESTION 34
+##QUESTION 34: Data Storage Product Usage
 
 ```{r}
 graph_multicolumn_q(df,
@@ -374,14 +374,14 @@ graph_cross_analysis(og_df = df,
 ```
 
 
-##QUESTION 35
+##QUESTION 35: Additional Data Products (databases, data warehouses, data lakes)
 
 ```{r}
 graph_multicolumn_q(df,
                     q35_cols,
                     'Question 35',
                     'Platform',
-                    'Additional Data Product Usage')
+                    'Databases, Warehouses and Lakes')
 ```
 
 ###Experience
@@ -391,19 +391,19 @@ graph_cross_analysis(og_df = df,
                      q_list = q35_cols, 
                      q_name = 'Question 35', 
                      val_label = 'Platform',
-                     q_text = 'Additional Data Product Usage',
+                     q_text = 'Databases, Warehouses and Lakes',
                      level_order = Q11_order)
 ```
 
 
 ###Job Title
-```{r}
+```{r, fig.width=10, fig.height=10}
 graph_cross_analysis(og_df = df, 
                      q_demo = 'Q23', 
                      q_list = q35_cols, 
                      q_name = 'Question 35', 
                      val_label = 'Platform',
-                     q_text = 'Additional Data Product Usage',
+                     q_text = 'Databases, Warehouses and Lakes',
                      level_order = Q23_order)
 ```
 
@@ -414,7 +414,7 @@ graph_cross_analysis(og_df = df,
                      q_list = q35_cols, 
                      q_name = 'Question 35', 
                      val_label = 'Platform',
-                     q_text = 'Additional Data Product Usage',
+                     q_text = 'Databases, Warehouses and Lakes',
                      level_order = Q29_order)
 ```
 
