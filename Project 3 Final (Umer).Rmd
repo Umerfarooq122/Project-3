@@ -28,7 +28,7 @@ The data set contained in total 16 Questions asked from individuals who are work
  * Finally to cross analyze all the above against experience, income, and their job title
 
 
-### Setting up the evironment and loading the data
+### **Setting up the environment and loading the data:**
 
 ```{r Include=FALSE, message=FALSE}
 library(tidyverse)
@@ -45,7 +45,7 @@ df <- read.csv('https://raw.githubusercontent.com/Umerfarooq122/Data_sets/main/k
 ```
 
 
-### Cleaning and Transforming the data:
+### **Cleaning and Transforming the data:**
 
 The first row of data set contains the questions so we do not need that so lets remove that from the data set to ease up things for transformations.
 
@@ -447,6 +447,8 @@ graph_cross_analysis(og_df = df,
 
 Now lets look at some of the popular libraries used by Data scientists
 
+### **Machine learning Libraries:**
+
 ```{r}
 graph_multicolumn_q(df,
                     q17_cols,
@@ -505,7 +507,7 @@ graph_cross_analysis(og_df = df,
 ```
 Again over here the XgBoost is over PyTorch which against the general trend.
 
-
+### **Machine learning Algorithms:**
 
 ```{r}
 graph_multicolumn_q(df,
@@ -549,6 +551,7 @@ graph_cross_analysis(og_df = df,
                      level_order = Q29_order)
 ```
 
+### **Pre-Trained Machine learning models:**
 
 ```{r}
 graph_multicolumn_q(df,
@@ -561,12 +564,33 @@ graph_multicolumn_q(df,
 
 ```{r}
 graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q8', 
+                     q_list = q21_cols, 
+                     q_name = 'Question 21', 
+                     val_label = 'Pre-Trained Model',
+                     q_text = 'Pre-Trained Model Used by People of Different Education level')
+```
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q11', 
+                     q_list = q21_cols, 
+                     q_name = 'Question 21', 
+                     val_label = 'Pre-Trained Model',
+                     q_text = 'Pre-Trained Model Used by People of Different Experience')
+```
+
+```{r}
+graph_cross_analysis(og_df = df, 
                      q_demo = 'Q23', 
                      q_list = q21_cols, 
-                     q_name = 'Question 17', 
+                     q_name = 'Question 21', 
                      val_label = 'Pre-Trained Model',
                      q_text = 'Pre-Trained Model Used by People of Different Roles')
 ```
+
+
+### **Ethical Machine Learning Tool:**
 
 ```{r}
 graph_multicolumn_q(df,
