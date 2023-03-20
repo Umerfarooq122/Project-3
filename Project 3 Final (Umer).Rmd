@@ -1,0 +1,581 @@
+---
+title: "Project_3 Machine Learning as a Skill"
+author: "Umer Farooq"
+date: "2023-03-18"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### **Overview**
+
+In this particular project we had to work collaboratively to find out about some of most high demand data scientist skills in the market. We found a large data set from Kaggle which list  all the important skills and responses from the people who are working in the field. The data set contained 44 variables spread into 296 columns with 23k+ observations. 
+
+I was assigned with the task to find out about machine learning as a skill for data scientist.**Machine learning (ML)** is a field of inquiry devoted to understanding and building methods that "learn" – that is, methods that leverage data to improve performance on some set of tasks. It is seen as a part of artificial intelligence.
+
+The data set contained in total 16 Questions asked from individuals who are working in the field and those questions were spread into 116 columns. My task was to find:
+
+ * Why machine learning is important
+ * How many people are using it. 
+ * Which libraries/tools are used more frequently
+ * Which Algorithms are used more frequently
+ * If they are using any pre-trained or managed model
+ * If they using any ethical AI algorithms or tools to monitor there algorithm or data continuously
+ * Finally to cross analyze all the above against experience, income, and their job title
+
+
+### Setting up the evironment and loading the data
+
+```{r Include=FALSE, message=FALSE}
+library(tidyverse)
+library(forcats)
+library(plyr)
+library(patchwork)
+library(cowplot)
+```
+
+
+```{r}
+df <- read.csv('https://raw.githubusercontent.com/Umerfarooq122/Data_sets/main/kaggle_survey_2022_responses.csv',
+               na.strings = c("", "NA"))
+```
+
+
+### Cleaning and Transforming the data:
+
+The first row of data set contains the questions so we do not need that so lets remove that from the data set to ease up things for transformations.
+
+```{r}
+#clear question text from first row
+df <- df[-1,]
+```
+
+The data set contained a lot responses from the individuals which ended up being a complete sentence like for example one the response about using machine learning practices was **We have well established ML methods (i.e., models in production for more than 2 years)**. Now the problem is that if you plot the on the graph it takes a lot of space and even if you resize the figures or plots, it still look very ugly. Now to re format this kind of response into a simple one like **Well established ML**. I came up with following code. This code transforms all the responses which could potentially make the graph/plot looks ugly into simple responses
+
+```{r}
+df[df=="Data Analyst (Business, Marketing, Financial, Quantitative, etc)"]<-"Data Analyst"
+df[df=="Machine Learning/ MLops Engineer"]<-"Machine Learning Engineer"
+df[df=="Manager (Program, Project, Operations, Executive-level, etc)"]<-"Manager"
+
+df[df=="Autoencoder Networks (DAE, VAE, etc)" ]<-"Autoencoder Networks"
+df[df=="Transformer Networks (BERT, gpt-3, etc)"]<-"Transformer Networks"
+df[df=="Transformer Networks (BERT, gpt-3, etc)"]<-"Transformer Networks"
+df[df=="Gradient Boosting Machines (xgboost, lightgbm, etc)"]<-"Gradient Boosting Machines"
+df[df=="Dense Neural Networks (MLPs, etc)"]<-"Dense Neural Networks"
+
+df[df=="We recently started using ML methods (i.e., models in production for less than 2 years)"]<-"Recently"
+df[df=="We have well established ML methods (i.e., models in production for more than 2 years)"]<- "Well established ML"
+df[df=="We are exploring ML methods (and may one day put a model into production)"]<-"Exploring ML"
+df[df=="We use ML methods for generating insights (but do not put working models into production)"]<- "Generating Insights"
+df[df=="No (we do not use ML methods)"]<-"No"
+
+df[df==" Google Responsible AI Toolkit (LIT, What-if, Fairness Indicator, etc) "]<-"Google Responsible AI"
+df[df==" Microsoft Responsible AI Resources (Fairlearn, Counterfit, InterpretML, etc) "]<-"Microsoft Responsible AI"
+df[df==" Amazon AI Ethics Tools (Clarify, A2I, etc) "]<-"Amazon AI Ethics"
+df[df==" IBM AI Ethics tools (AI Fairness 360, Adversarial Robustness Toolbox, etc "]<-"IBM AI Ethics"
+df[df==" The LinkedIn Fairness Toolkit (LiFT) "]<-"LinkedIn Fairness Toolkit"
+
+df[df=="No, I do not download pre-trained model weights on a regular basis"]<-"No I do not"
+df[df=="Other storage services (i.e. google drive)"]<-"Other"
+```
+
+Similarly, in income brackets were around 20+ which could again be too much to handle while plotting so that brackets were re-categorized into 5,6 brackets using the following code chunk:
+
+```{r}
+df$Q29_grouped <- mapvalues(df$Q29, 
+          from=c('$0-999','1,000-1,999','2,000-2,999','3,000-3,999','4,000-4,999','5,000-7,499',
+                 '7,500-9,999','10,000-14,999','15,000-19,999','20,000-24,999','25,000-29,999',
+                 '30,000-39,999','40,000-49,999','50,000-59,999','60,000-69,999','70,000-79,999',
+                 '80,000-89,999','90,000-99,999','100,000-124,999','125,000-149,999','150,000-199,999',
+                 '200,000-249,999','250,000-299,999','300,000-499,999','$500,000-999,999','>$1,000,000'), 
+          to=c('$0-4,999','$0-4,999','$0-4,999','$0-4,999','$0-4,999','$5,000-24,999','$5,000-24,999',
+               '$5,000-24,999','$5,000-24,999','$5,000-24,999','$25,000-69,999','$25,000-69,999',
+               '$25,000-69,999','$25,000-69,999','$25,000-69,999','$70,000-$149,999','$70,000-$149,999',
+               '$70,000-$149,999','$70,000-$149,999','$70,000-$149,999','$150,000-$999,999',
+               '$150,000-$999,999','$150,000-$999,999','$150,000-$999,999','$150,000-$999,999',
+               '>$1,000,000')
+          )
+```
+
+The below code chunk sets the order for the facets in graph and we might or might not use it looking at the requirements:
+
+```{r}
+Q23_order <- c('Data Scientist',
+       'Data Analyst (Business, Marketing, Financial, Quantitative, etc)',
+       'Currently not employed', 'Software Engineer', 'Teacher / professor',
+       'Manager (Program, Project, Operations, Executive-level, etc)', 'Other',
+       'Research Scientist', 'Machine Learning/ MLops Engineer',
+       'Engineer (non-software)', 'Data Engineer', 'Statistician',
+       'Data Architect', 'Data Administrator', 'Developer Advocate')
+Q29_order <- c('$0-4,999','$5,000-24,999','$25,000-69,999','$70,000-$149,999',
+               '$150,000-$999,999','>$1,000,000')
+```
+
+Now in order the transform the table from wider format into longer format could be very cumbersome task, especially, turning 116 columns with 23K observation into 16 columns. The number rows can end up in millions so we came up with a the function to pivot the columns of the table and plot the bar chart for it for each Questions. Below is the code for pivoting the Question and plotting a bar charr for it:
+
+```{r}
+
+graph_multicolumn_q <- function(og_df, q_list, 
+                                q_name, val_label,
+                                q_text) {
+  #Create limited df with only that question's columns
+  q_df <- og_df %>%
+     select(all_of(q_list))
+  
+  #Create long-pivoted df for graphing
+  q_df1 <- q_df %>%
+    pivot_longer(
+    cols = everything(),
+    names_to = q_name,
+    values_to = val_label,
+    values_drop_na = TRUE)
+  
+  #Produce df of value counts
+  q_df1_count <- q_df1 %>%
+    count(sym(val_label))
+  
+  #Graph result
+  q_df1 %>%
+    ggplot(aes(x=fct_rev(fct_infreq(!!sym(val_label)))))+
+    geom_bar()+
+    coord_flip()+
+    theme_minimal()+
+    ggtitle(q_text)+
+    xlab(val_label)
+  
+}
+```
+
+Then to perform cross analysis against different demographics we came up with another functions which saves tons of time to perform cross analysis: Below is the code for cross analysis function:
+
+```{r}
+graph_cross_analysis <- function(og_df, q_demo, q_list, q_name, 
+                                  val_label, q_text, level_order) {
+  q_df <- og_df %>%
+    select(all_of(c(q_demo, q_list)))
+  
+  q_df1 <- q_df %>%
+    pivot_longer(
+      cols= -1,
+      names_to=q_name,
+      values_to=val_label,
+      values_drop_na=TRUE
+  )
+  
+  q_df2 <- q_df1[complete.cases(q_df1), ]
+  
+  q_df2[[q_demo]] <- factor(q_df2[[q_demo]], levels = level_order)
+  
+  q_df2 %>%
+    ggplot(aes(x=fct_rev(fct_infreq(!!sym(val_label))), fill = as.factor(!!sym(q_demo))))+
+    facet_wrap(q_demo)+
+    coord_flip()+
+    geom_bar()+
+    theme(axis.text.x = element_text(size = 7))+
+    theme(axis.text.y = element_text(size = 7))+
+    theme(legend.position = "none")+
+    labs(y= "Count", x = val_label)+
+    ggtitle(q_text)
+    
+}
+```
+
+Over here I have defined the list of Questions with their respective columns
+
+```{r}
+#define column lists for each question
+
+q8_cols <- c('Q8')
+
+q16_cols <- c('Q16')
+
+q17_cols <-  c('Q17_1','Q17_2','Q17_3','Q17_4',
+               'Q17_5','Q17_6','Q17_7','Q17_8',
+               'Q17_9','Q17_10','Q17_11','Q17_12',
+               'Q17_13','Q17_14','Q17_15')
+
+q18_cols <-  c('Q18_1','Q18_2','Q18_3','Q18_4','Q18_5','Q18_6',
+               'Q18_7','Q18_8','Q18_9','Q18_10','Q18_11','Q18_12',
+               'Q18_13','Q18_14')
+
+q21_cols <-  c('Q21_1','Q21_2','Q21_3','Q21_4','Q21_5','Q21_6',
+               'Q21_7','Q21_8','Q21_9','Q21_10')
+
+q27_cols <- c('Q27')
+
+q23_cols <- c('Q23')
+
+q29_cols <- c('Q29')
+
+q30_cols <-  c('Q30')
+
+q37_cols <-  c('Q37_1','Q37_2','Q37_3','Q37_4','Q37_5',
+               'Q37_6','Q37_7','Q37_8','Q37_9','Q37_10',
+               'Q37_11','Q37_12','Q37_13')
+
+q40_cols <-  c('Q40_1','Q40_2','Q40_3','Q40_4','Q40_5','Q40_6',
+               'Q40_7','Q40_8','Q40_9','Q40_10','Q40_11','Q40_12',
+               'Q40_13','Q40_14','Q40_15')
+
+q41_cols <-  c('Q41_1','Q41_2','Q41_3','Q41_4','Q41_5','Q41_6',
+               'Q41_7','Q41_8','Q41_9')
+
+q42_cols <-  c('Q42_1','Q42_2','Q42_3','Q42_4','Q42_5','Q42_6',
+               'Q42_7','Q42_8','Q42_9')
+
+```
+
+
+### **Machine learning practices by employers:**
+
+In the dataset that we found on Kaggle, the most practical way of looking at the importance of machine learning is to include the response from the individuals who are right now working the field. Below with the help of function we created a bar plot that aggregates responses from the individual who are working in the data science industry:
+
+```{r}
+graph_multicolumn_q(df,
+                    q27_cols,
+                    'Question 31',
+                    'Response',
+                    'ML Practices by Employers')
+```
+We can see that a lot of responses came in the shape of **No** but if you look at other responses some employers has recently started it, some are generating insights but not fully using it while others have a well established system to use machine learning. But the graph above is certainly not conclusive and requires more digging to find out more about machine learning practices.
+
+Let's do a cross analysis of Machine learning practices against different level of education and see what are the responses from individuals with different education level
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q8', 
+                     q_list = q27_cols, 
+                     q_name = 'Question 31', 
+                     val_label = 'Response',
+                     q_text = 'Machine Learning at Different Level of Education'
+)
+
+```
+The graph above is really interesting because people with high degree like a Masters or PHD are using a well established machine learning practices in their respective jobs. But again we can further narrow down.
+
+Here is another way of Looking at the data since a lot of responses in from people in field could be categorize into **Yes** and **No** so we can actually categorize it and then plot the data to see if has any effect on the above information or not. Some of the responses like **I do not know** and **No (we do not use ML methods)** could be categorized as NO while responses like **We recently started using ML methods (i.e., models in production for less than 2 years)**, **We have well established ML methods (i.e., models in production for more than 2 years)** e.t.c can be categorized as YES. In order to the achieve that the following code is devised
+
+
+```{r}
+# To check for Positive responses over all and replace them by Yes
+Positive_response <- df[150]|>
+    filter(Q27!="I do not know" & Q27!="No")|>
+    replace(1,"Yes")
+
+# To check for Negative responses over all and replace them by No
+negative_response <- df[150]|>
+  filter(Q27=="I do not know" | Q27=="No")|>
+  replace(1, "No")
+
+# Finding the percentage
+percent_g <- cbind.data.frame(nrow(Positive_response), nrow(negative_response))|>
+  mutate(Total = nrow(Positive_response)+nrow(negative_response))|>
+  mutate(General_percentage = nrow(Positive_response)/Total *100)
+
+#Plotting the response
+gen <- ggplot()+
+  geom_bar(data = Positive_response, aes(x=Q27),fill="green")+
+  geom_bar(data = negative_response, aes(x=Q27), fill="red")+labs(x="General response")+theme_bw()
+
+# Gathering information based on country i.e. USA
+country <- df[4]
+role <- df[150]
+us_based <- cbind.data.frame(country, role)
+us_based<- us_based|>
+  filter(Q4 == "United States of America")|>
+  filter(!is.na(Q27))
+
+# Checking for positive response
+Positive_us <- us_based[2]|>
+  filter(Q27!="I do not know" & Q27!="No")|>
+  replace(1,"Yes")
+
+#Checking for negative response
+negative_us <- us_based[2]|>
+filter(Q27=="I do not know" | Q27=="No")|>
+  replace(1, "No")
+
+#Finding the Percentage
+percent_us <- cbind.data.frame(nrow(Positive_us), nrow(negative_us))|>
+  mutate(Total = nrow(Positive_us)+nrow(negative_us))|>
+  mutate(US_percentage = nrow(Positive_us)/Total *100)
+
+#Plotting the responses
+us <- ggplot()+
+  geom_bar(data = Positive_us, aes(x=Q27),fill="green")+
+  geom_bar(data = negative_us, aes(x=Q27), fill="red")+labs(x="US Based")+theme_bw()
+
+#Gathering Information based on Degree
+degree <- df[25]
+degree_based <- cbind.data.frame(degree, role)
+degree_based<- degree_based|>
+  filter(Q8 == "Master’s degree")|>
+  filter(!is.na(Q27))
+
+#Checking for Positive response
+Positive_degree <- degree_based[2]|>
+  filter(Q27!="I do not know" & Q27!="No")|>
+  replace(1,"Yes")
+
+#Negative response
+negative_degree <- degree_based[2]|>
+filter(Q27=="I do not know" | Q27=="No")|>
+  replace(1, "No")
+
+#Percentage
+percent_deg <- cbind.data.frame(nrow(Positive_degree), nrow(negative_degree))|>
+  mutate(Total = nrow(Positive_degree)+nrow(negative_degree))|>
+  mutate(Masters_percentage = nrow(Positive_degree)/Total *100)
+
+#plotting the response
+deg<-ggplot()+
+  geom_bar(data = Positive_degree, aes(x=Q27),fill="green")+
+  geom_bar(data = negative_degree, aes(x=Q27), fill="red")+labs(x="Master's Degree")+theme_bw()
+```
+
+```{r}
+gen+us+deg
+General_percentage<-percent_g$General_percentage
+US_percentage<-percent_us$US_percentage
+Masters_percentage <- percent_deg$Masters_percentage
+percentage <- cbind.data.frame(General_percentage, US_percentage, Masters_percentage)
+knitr::kable(percentage)
+```
+
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q23', 
+                     q_list = q27_cols, 
+                     q_name = 'Question 31', 
+                     val_label = 'Response',
+                     q_text = 'Machine Learning for Different Job Titles'
+                     
+                    )
+```
+
+Here is another way of looking at the data:
+
+```{r}
+# checking out data scientist's response if they are using ML or not
+#Positive response includes: Yes we are using it, We are about to start, We are getting trained e.t.c
+#negative response include: No we are not or we don't know
+Q23<-df$Q23
+Q27<-df$Q27
+job_response <- cbind.data.frame(Q23, Q27)
+Scientist_response<-job_response|>
+  filter(df$Q23=="Data Scientist")
+
+#Looking for positive response
+sci_pos<-Scientist_response|>
+  filter(Q27!="I do not know" & Q27!="No")|>
+  filter(!is.na(Q27))|>
+  replace(2,"Yes")
+
+#Looking for negative response
+sci_neg <- Scientist_response|>
+  filter(Q27=="I do not know" | Q27=="No")|>
+  filter(!is.na(Q27))|>
+  replace(2, "No")
+
+#Plotting the responses for data scientist
+sci_plot <- ggplot()+
+  geom_bar(data = sci_pos, aes(x= Q27), fill="green")+
+  geom_bar(data = sci_neg, aes(x=Q27), fill="red")+labs(x="Data Scientist's Response")+theme_bw()
+
+# checking out Analyst's response if they are using ML or not
+Analyst_response <- job_response|>
+  filter(Q23=="Data Analyst")
+
+#Looking for positive response
+ana_pos<-Analyst_response|>
+  filter(Q27!="I do not know" & Q27!="No")|>
+  filter(!is.na(Q27))|>
+  replace(2,"Yes")
+
+#Looking for negative response
+ana_neg <- Analyst_response|>
+  filter(Q27=="I do not know" | Q27=="No")|>
+  filter(!is.na(Q27))|>
+  replace(2, "No")
+
+#Plotting the responses for data analyst
+ana_plot <- ggplot()+
+  geom_bar(data = ana_pos, aes(x= Q27), fill="green")+
+  geom_bar(data = ana_neg, aes(x=Q27), fill="red")+labs(x="Data Analyst's Response")+theme_bw()
+
+#Checking out Software engineer's response if they are using ML or not
+Soft_response <- job_response|>
+  filter(Q23=="Software Engineer")
+
+#Looking for positive response
+soft_pos<-Soft_response|>
+  filter(Q27!="I do not know" & Q27!="No")|>
+  filter(!is.na(Q27))|>
+  replace(2,"Yes")
+
+#Looking for negative response
+soft_neg <- Soft_response|>
+  filter(Q27=="I do not know" | Q27=="No")|>
+  filter(!is.na(Q27))|>
+  replace(2, "No")
+
+#Plotting the responses for Software Engineers
+soft_plot <- ggplot()+
+  geom_bar(data = soft_pos, aes(x= Q27), fill="green")+
+  geom_bar(data = soft_neg, aes(x=Q27), fill="red")+labs(x="Soft Engineer's Response")+theme_bw()
+
+#Recalling the plots
+ana_plot+sci_plot+soft_plot
+ 
+```
+Similarly cross analyzing ML Practices against different level of Income  
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q29_grouped', 
+                     q_list = q27_cols, 
+                     q_name = 'Question 31', 
+                     val_label = 'Response',
+                     q_text = 'Machine Learning at Different Bracket of Income',
+                     level_order = Q29_order)
+```
+
+Now lets look at some of the popular libraries used by Data scientists
+
+```{r}
+graph_multicolumn_q(df,
+                    q17_cols,
+                    'Question 17',
+                    'Libraries',
+                    'ML Libraries/Tools')
+```
+
+We can see that Scikit learn which is a python library is vastly used by data scientist followed by Tensor flow, Keras, Pytorch e.t.c. Lets carry out some cross analysis to see if we can find some insights:
+
+Cross analyzing ML Libraries against different level of education
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q8', 
+                     q_list = q17_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Library Name',
+                     q_text = 'Machine Learning Libraries Against Level of Education')
+```
+Individual with masters degree is using a lot ML libraries. The trend from different level of educations falls aligned with overall trend.
+
+Cross analyzing ML Libraries against Experience
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q11', 
+                     q_list = q17_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Library Name',
+                     q_text = 'Machine Learning Libraries for Different Experience Level')
+```
+Again we can see that the trend from different experience level falls aligned with general trend.
+
+Now lets cross analyse ML Libraries against individual who are working in different roles:
+```{r fig.width=15, fig.height=15}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q23', 
+                     q_list = q17_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Library Name',
+                     q_text = 'Machine Learning Libraries for Different roles')
+```
+Over here we can see that people working as data sceintist uses Xgboost library more than Tensor flow, Keras and Pytorch. So this something to take note of.
+
+
+Cross Analyzing ML Libraries against different income brackets
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q29_grouped', 
+                     q_list = q17_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Library Name',
+                     q_text = 'ML Libraries Used by People of Different Income Brackets',
+                     level_order = Q29_order
+                     )
+```
+Again over here the XgBoost is over PyTorch which against the general trend.
+
+
+
+```{r}
+graph_multicolumn_q(df,
+                    q18_cols,
+                    'Question 18',
+                    'Algorithm',
+                    'ML Algorithm')
+```
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q8', 
+                     q_list = q18_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Algorithm Name',
+                     q_text = 'ML Algorithm used by people of Different Education Level')
+```
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q11', 
+                     q_list = q18_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Algorithm Name',
+                     q_text = 'Machine Learning Algorithms Against Experience')
+```
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q23', 
+                     q_list = q18_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Algorithm Name',
+                     q_text = 'Machine Learning Algorithms Against Different Roles')
+```
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q29_grouped', 
+                     q_list = q18_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Algorithm Name',
+                     q_text = 'ML Algorithms used by people of different income brackets',
+                     level_order = Q29_order)
+```
+
+
+```{r}
+graph_multicolumn_q(df,
+                    q21_cols,
+                    'Question 21',
+                    'Pre Trained model',
+                    'Pre Trained Machine Learning Model')
+```
+
+
+```{r}
+graph_cross_analysis(og_df = df, 
+                     q_demo = 'Q23', 
+                     q_list = q21_cols, 
+                     q_name = 'Question 17', 
+                     val_label = 'Pre-Trained Model',
+                     q_text = 'Pre-Trained Model Used by People of Different Roles')
+```
+
+```{r}
+graph_multicolumn_q(df,
+                    q41_cols,
+                    'Question 35',
+                    'Managed tool',
+                    'Ethical Machine Learning Tool')
+```
+
+### **Conclusion:** 
+
+There is a lot to take from the above analysis. Around 2/3 of the overall respondents working in the field were using Machine learning practices in one way or other.Around 80% roughly especially people who were working in the role of data scientist were using ML Practices. Common exntensively used libraries across different roles in the field for machines learning were Scikit learn, Tensor Flow, Keras, Pytorch and Xgboost. Common ML algorithms that were used more often than others were Linear regression, Decision tree, Convulotional neural network and Gradient boost machines. Similarly there were pre trained machine learning models and majority of the respondents did not use any Pre-trained ML model but out of the ones that were used a lot were Kaggle, Tensor Flow Hub and PyTorch Hub. The worrying results came from the column of Ethical machine learning tool which portrays that a lot of employers of respondents were not using any tool to check the ethical side of their ML models. 
